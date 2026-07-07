@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 # Initialize the SQLAlchemy extension
 db = SQLAlchemy()
@@ -11,6 +12,8 @@ def create_app():
     load_dotenv()
     
     app = Flask(__name__)
+
+    CORS(app)
     
     # Configure the database connection using PyMySQL
     # Make sure to create a .env file with your DATABASE_URL
