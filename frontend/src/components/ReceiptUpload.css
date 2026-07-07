@@ -62,3 +62,77 @@
     font-weight: bold;
     color: #333;
 }
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2f80ed;
+    padding: 15px 40px;
+}
+
+.logo {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 25px;
+}
+
+.nav-links li {
+    list-style: none;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: #d9e8ff;
+}
+
+/* Upload Section */
+.upload-container {
+    width: 450px;
+    margin: 60px auto;
+    text-align: center;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    background: white;
+}
+
+.upload-container h2 {
+    margin-bottom: 20px;
+}
+
+.upload-container input {
+    margin: 20px 0;
+}
+
+.upload-container button {
+    background: #2f80ed;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.upload-container button:hover {
+    background: #1d6ddc;
+}
+
+.upload-container p {
+    margin-top: 20px;
+    font-weight: bold;
+}

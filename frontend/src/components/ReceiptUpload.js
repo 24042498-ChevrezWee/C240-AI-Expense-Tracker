@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Navbar from "./Navbar";
 import "./ReceiptUpload.css";
 
 function ReceiptUpload() {
@@ -34,29 +35,24 @@ function ReceiptUpload() {
     };
 
     const handleUpload = async () => {
-
         if (!selectedFile) {
             setMessage("Please select a receipt.");
             return;
         }
 
-        const formData = new FormData();
+        setLoading(true);
 
+        const formData = new FormData();
         formData.append("file", selectedFile);
-        formData.append("user_id", "1"); // Replace with the logged-in user's ID later
+        formData.append("user_id", "1"); // Replace with logged-in user's ID later
 
         try {
-
-            const response = await fetch(
-                "http://localhost:5000/api/upload",
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
+            const response = await fetch("http://localhost:5000/api/upload", {
+                method: "POST",
+                body: formData,
+            });
 
             const data = await response.json();
-
             console.log(data);
 
             if (response.ok) {
@@ -64,53 +60,66 @@ function ReceiptUpload() {
             } else {
                 setMessage(data.error);
             }
-
         } catch (err) {
             console.error(err);
             setMessage("Unable to connect to server.");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="receipt-container">
+                <>
+                    <Navbar />
 
-            <h2>Upload Receipt</h2>
+                    <div className="receipt-container">
 
-            <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.pdf"
-                onChange={handleFileChange}
-                className="file-input"
-            />
+                        <h2>Upload Receipt</h2>
 
-            {preview && (
-                <img
-                    src={preview}
-                    alt="Receipt Preview"
-                    className="receipt-preview"
-                />
-            )}
-
-            {selectedFile &&
-                selectedFile.type === "application/pdf" && (
-                    <div className="pdf-preview">
-                        📄 {selectedFile.name}
+                        ...
                     </div>
+
+            {/* Upload Section */}
+            <div className="receipt-container">
+
+                <h2>Upload Receipt</h2>
+
+                <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={handleFileChange}
+                    className="file-input"
+                />
+
+                {preview && (
+                    <img
+                        src={preview}
+                        alt="Receipt Preview"
+                        className="receipt-preview"
+                    />
                 )}
 
-            <button
-                onClick={handleUpload}
-                disabled={loading}
-                className="upload-button"
-            >
-                {loading ? "Uploading..." : "Upload Receipt"}
-            </button>
+                {selectedFile &&
+                    selectedFile.type === "application/pdf" && (
+                        <div className="pdf-preview">
+                            📄 {selectedFile.name}
+                        </div>
+                    )}
 
-            {message && (
-                <p className="message">{message}</p>
-            )}
+                <button
+                    onClick={handleUpload}
+                    disabled={loading}
+                    className="upload-button"
+                >
+                    {loading ? "Uploading..." : "Upload Receipt"}
+                </button>
 
-        </div>
+                {message && (
+                    <p className="message">{message}</p>
+                )}
+
+            </div>
+        </>
     );
 }
 
