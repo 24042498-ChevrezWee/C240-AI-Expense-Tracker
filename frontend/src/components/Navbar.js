@@ -1,12 +1,17 @@
 import { Link } from "react-router-dom";
 import "./Navbar.css";
 
-function Navbar() {
+function Navbar({ user, onLogout }) {
     return (
-        <nav className="navbar">
-            <div className="logo">
+        <>
+            <a href="#main-content" className="skip-link">
+                Skip to content
+            </a>
+
+            <nav className="navbar" aria-label="Primary">
+            <Link to="/" className="logo">
                 AI Expense Tracker
-            </div>
+            </Link>
 
             <ul className="nav-links">
                 <li>
@@ -20,8 +25,24 @@ function Navbar() {
                 <li>
                     <Link to="/summary">Expense Summary</Link>
                 </li>
+
+                {user ? (
+                    <>
+                        <li className="nav-user">{user.first_name || user.email}</li>
+                        <li>
+                            <button type="button" className="logout-button" onClick={onLogout}>
+                                Logout
+                            </button>
+                        </li>
+                    </>
+                ) : (
+                    <li>
+                        <Link to="/login">Login</Link>
+                    </li>
+                )}
             </ul>
-        </nav>
+            </nav>
+        </>
     );
 }
 

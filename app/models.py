@@ -45,6 +45,7 @@ class Receipt(db.Model):
     merchant_name = db.Column(db.String(255))
     receipt_date = db.Column(db.Date)
     total_amount = db.Column(db.Numeric(10, 2))
+    amount_in_sgd = db.Column(db.Numeric(10, 2))
     currency_code = db.Column(db.String(3), db.ForeignKey('currencies.currency_code'))
     category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'))
     receipt_image_path = db.Column(db.String(500))

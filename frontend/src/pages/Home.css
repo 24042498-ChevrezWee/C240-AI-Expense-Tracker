@@ -1,0 +1,166 @@
+.dashboard-shell {
+    padding: 32px 24px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+    border: 1px solid #c8e6c9;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(46, 125, 50, 0.08);
+}
+
+.dashboard-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #2e7d32;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+}
+
+.dashboard-hero h1 {
+    margin: 0 0 8px;
+    color: #1b5e20;
+    font-size: 1.8rem;
+}
+
+.dashboard-copy {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.dashboard-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.dashboard-action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 170px;
+    border-radius: 14px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(46, 125, 50, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(46, 125, 50, 0.24);
+}
+
+.dashboard-action-card span {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dashboard-card,
+.dashboard-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-card h3 {
+    margin: 6px 0 0;
+    font-size: 1.5rem;
+    color: #1b5e20;
+}
+
+.card-label {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.dashboard-section-header {
+    margin-bottom: 12px;
+}
+
+.dashboard-section-header h2 {
+    margin: 0;
+    color: #1b5e20;
+}
+
+.recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recent-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.recent-item:last-child {
+    border-bottom: none;
+}
+
+.recent-item p,
+.recent-meta span {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.recent-meta {
+    text-align: right;
+}
+
+.loading-card {
+    text-align: center;
+    color: #6b7280;
+    padding: 28px;
+}
+
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-shell {
+        padding: 20px 14px 36px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-action-card {
+        width: 100%;
+    }
+}
