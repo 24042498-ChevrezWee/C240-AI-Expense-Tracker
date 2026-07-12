@@ -44,6 +44,7 @@
 
 .login-input {
     width: 100%;
+    box-sizing: border-box;
     border: 1px solid #cfd8cf;
     border-radius: 10px;
     padding: 10px 12px;

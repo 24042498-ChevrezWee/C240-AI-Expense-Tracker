@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import Navbar from "./Navbar";
-import { uploadReceipt } from "../services/apiService";
-import { saveRecentReceipt } from "../services/dashboardService";
+import {
+    cancelReceiptPreview,
+    confirmReceiptUpload,
+    extractReceiptPreview,
+} from "../services/apiService";
 import "./ReceiptUpload.css";
 
 function ReceiptUpload({ user, onLogout }) {
@@ -13,6 +16,8 @@ function ReceiptUpload({ user, onLogout }) {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [extractedData, setExtractedData] = useState(null);
+    const [previewData, setPreviewData] = useState(null);
+    const [loadingLabel, setLoadingLabel] = useState("Processing your receipt...");
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -33,6 +38,7 @@ function ReceiptUpload({ user, onLogout }) {
         setMessageType("info");
         setUploadProgress(0);
         setExtractedData(null);
+        setPreviewData(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -58,13 +64,10 @@ function ReceiptUpload({ user, onLogout }) {
         setMessageType("info");
         setUploadProgress(0);
         setExtractedData(null);
+        setPreviewData(null);
 
-        if (file.type !== "application/pdf") {
-            const objectUrl = URL.createObjectURL(file);
-            setPreview(objectUrl);
-        } else {
-            setPreview(null);
-        }
+        const objectUrl = URL.createObjectURL(file);
+        setPreview(objectUrl);
     };
 
     const handleFileChange = (event) => {
@@ -77,7 +80,7 @@ function ReceiptUpload({ user, onLogout }) {
         handleFileSelection(event.dataTransfer.files[0]);
     };
 
-    const handleUpload = async () => {
+    const handleExtractPreview = async () => {
         if (!selectedFile) {
             setMessage("Please select a receipt.");
             setMessageType("error");
@@ -86,25 +89,60 @@ function ReceiptUpload({ user, onLogout }) {
 
         setLoading(true);
         setUploadProgress(10);
-        setMessage("Uploading receipt...");
+        setLoadingLabel("Extracting receipt details...");
+        setMessage("Extracting receipt details...");
         setMessageType("info");
 
         try {
-            const data = await uploadReceipt(selectedFile, user?.user_id || "1");
+            const data = await extractReceiptPreview(selectedFile, user?.user_id || "1");
             setUploadProgress(100);
 
             const parsedData = data?.data || {};
-            const receiptSummary = {
-                id: parsedData.receipt_id || `${selectedFile.name}-${Date.now()}`,
-                merchant: parsedData.merchant_name || "Not available",
-                category: parsedData.category || "Uncategorized",
-                amount: Number(parsedData.total_amount || 0),
-                currency: parsedData.currency || "USD",
-                amountInSgd: parsedData.amount_in_sgd ?? null,
-                date: parsedData.receipt_date || new Date().toISOString().slice(0, 10),
-            };
+            setPreviewData({
+                merchantName: parsedData.merchant_name || "Not available",
+                receiptDate: parsedData.receipt_date || "Not available",
+                totalAmount: parsedData.total_amount ?? "",
+                currency: parsedData.currency || "Not available",
+                category: parsedData.category || "Not available",
+                tempFilePath: parsedData.temp_file_path,
+            });
+            setExtractedData(null);
+            setMessage("Please verify the extracted receipt details before uploading.");
+            setMessageType("info");
+        } catch (err) {
+            setPreviewData(null);
+            setExtractedData(null);
+            setMessage(err.message || "Unable to connect to the server.");
+            setMessageType("error");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            saveRecentReceipt(receiptSummary);
+    const handleConfirmUpload = async () => {
+        if (!previewData?.tempFilePath) {
+            setMessage("Receipt preview is missing. Please extract again.");
+            setMessageType("error");
+            return;
+        }
+
+        setLoading(true);
+        setLoadingLabel("Saving receipt...");
+        setMessage("Saving receipt...");
+        setMessageType("info");
+
+        try {
+            const data = await confirmReceiptUpload({
+                user_id: user?.user_id || "1",
+                temp_file_path: previewData.tempFilePath,
+                merchant_name: previewData.merchantName,
+                receipt_date: previewData.receiptDate,
+                total_amount: previewData.totalAmount,
+                currency: previewData.currency,
+                category: previewData.category,
+            });
+
+            const parsedData = data?.data || {};
             setExtractedData({
                 merchantName: parsedData.merchant_name || "Not available",
                 receiptDate: parsedData.receipt_date || "Not available",
@@ -112,15 +150,29 @@ function ReceiptUpload({ user, onLogout }) {
                 currency: parsedData.currency || "Not available",
                 category: parsedData.category || "Not available",
             });
+            setPreviewData(null);
             setMessage("Receipt uploaded successfully!");
             setMessageType("success");
         } catch (err) {
-            setExtractedData(null);
             setMessage(err.message || "Unable to connect to the server.");
             setMessageType("error");
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCancelPreview = async () => {
+        if (previewData?.tempFilePath) {
+            try {
+                await cancelReceiptPreview(previewData.tempFilePath);
+            } catch {
+                // Continue with local reset to keep the UI responsive even if cancellation cleanup fails.
+            }
+        }
+
+        resetUpload();
+        setMessage("Receipt upload cancelled.");
+        setMessageType("info");
     };
 
     return (
@@ -162,7 +214,7 @@ function ReceiptUpload({ user, onLogout }) {
                         id="receipt-file"
                         ref={fileInputRef}
                         type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        accept=".jpg,.jpeg,.png,.webp"
                         onChange={handleFileChange}
                         className="file-input"
                         aria-label="Choose a receipt file"
@@ -191,7 +243,7 @@ function ReceiptUpload({ user, onLogout }) {
                 {loading && (
                     <div className="progress-card" aria-live="polite">
                         <div className="spinner" />
-                        <span>Processing your receipt...</span>
+                        <span>{loadingLabel}</span>
                         <div className="progress-bar">
                             <div className="progress-fill" style={{ width: `${uploadProgress}%` }} />
                         </div>
@@ -199,25 +251,112 @@ function ReceiptUpload({ user, onLogout }) {
                 )}
 
                 <div className="actions-row">
-                    <button
-                        onClick={handleUpload}
-                        disabled={loading || !selectedFile}
-                        className="upload-button"
-                    >
-                        {loading ? "Uploading..." : "Upload Receipt"}
-                    </button>
+                    {!previewData ? (
+                        <>
+                            <button
+                                onClick={handleExtractPreview}
+                                disabled={loading || !selectedFile}
+                                className="upload-button"
+                            >
+                                {loading ? "Extracting..." : "Extract Details"}
+                            </button>
 
-                    <button
-                        type="button"
-                        onClick={resetUpload}
-                        className="reset-button"
-                        disabled={loading}
-                    >
-                        Reset
-                    </button>
+                            <button
+                                type="button"
+                                onClick={resetUpload}
+                                className="reset-button"
+                                disabled={loading}
+                            >
+                                Reset
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                onClick={handleConfirmUpload}
+                                disabled={loading}
+                                className="upload-button"
+                            >
+                                {loading ? "Confirming..." : "Confirm Upload"}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleCancelPreview}
+                                className="reset-button"
+                                disabled={loading}
+                            >
+                                Cancel
+                            </button>
+                        </>
+                    )}
                 </div>
 
-                {extractedData && (
+                {previewData && (
+                    <div className="result-card" aria-live="polite">
+                        <div className="result-card-header">
+                            <h3>Review receipt details</h3>
+                            <span>Please verify before uploading</span>
+                        </div>
+                        <p className="preview-helper-text">Please verify the extracted receipt details before uploading.</p>
+
+                        <div className="result-grid">
+                            <div className="result-item">
+                                <p className="result-label">Merchant Name</p>
+                                <input
+                                    type="text"
+                                    className="result-input"
+                                    value={previewData.merchantName}
+                                    onChange={(event) => setPreviewData((current) => ({ ...current, merchantName: event.target.value }))}
+                                />
+                            </div>
+
+                            <div className="result-item">
+                                <p className="result-label">Receipt Date</p>
+                                <input
+                                    type="date"
+                                    className="result-input"
+                                    value={previewData.receiptDate}
+                                    onChange={(event) => setPreviewData((current) => ({ ...current, receiptDate: event.target.value }))}
+                                />
+                            </div>
+
+                            <div className="result-item">
+                                <p className="result-label">Total Amount</p>
+                                <input
+                                    type="number"
+                                    className="result-input"
+                                    value={previewData.totalAmount}
+                                    step="0.01"
+                                    onChange={(event) => setPreviewData((current) => ({ ...current, totalAmount: event.target.value }))}
+                                />
+                            </div>
+
+                            <div className="result-item">
+                                <p className="result-label">Currency</p>
+                                <input
+                                    type="text"
+                                    className="result-input"
+                                    value={previewData.currency}
+                                    onChange={(event) => setPreviewData((current) => ({ ...current, currency: event.target.value.toUpperCase() }))}
+                                />
+                            </div>
+
+                            <div className="result-item">
+                                <p className="result-label">Expense Category</p>
+                                <input
+                                    type="text"
+                                    className="result-input"
+                                    value={previewData.category}
+                                    onChange={(event) => setPreviewData((current) => ({ ...current, category: event.target.value }))}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {extractedData && !previewData && (
                     <div className="result-card" aria-live="polite">
                         <div className="result-card-header">
                             <h3>Extracted receipt details</h3>

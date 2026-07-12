@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { getDashboardSummary, getRecentReceipts } from "../services/dashboardService";
-import { clearAllData } from "../services/apiService";
+import { clearAllData, deleteReceipt } from "../services/apiService";
 import "./Summary.css";
 
 function Summary({ user, onLogout }) {
@@ -12,6 +12,7 @@ function Summary({ user, onLogout }) {
     const [actionMessage, setActionMessage] = useState("");
     const [actionMessageType, setActionMessageType] = useState("info");
     const [isClearing, setIsClearing] = useState(false);
+    const [deletingReceiptId, setDeletingReceiptId] = useState(null);
 
     async function loadData() {
         try {
@@ -57,6 +58,28 @@ function Summary({ user, onLogout }) {
             setActionMessageType("error");
         } finally {
             setIsClearing(false);
+        }
+    };
+
+    const handleDeleteReceipt = async (receiptId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this receipt?");
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setDeletingReceiptId(receiptId);
+            setActionMessage("");
+            setActionMessageType("info");
+            await deleteReceipt(receiptId, user?.user_id);
+            await loadData();
+            setActionMessage("Receipt deleted successfully.");
+            setActionMessageType("success");
+        } catch (err) {
+            setActionMessage(err.message || "Unable to delete this receipt right now.");
+            setActionMessageType("error");
+        } finally {
+            setDeletingReceiptId(null);
         }
     };
 
@@ -144,13 +167,23 @@ function Summary({ user, onLogout }) {
                                 {recentReceipts.length > 0 ? (
                                     recentReceipts.map((receipt) => (
                                         <div key={receipt.id} className="receipt-item">
-                                            <div>
-                                                <strong>{receipt.merchant}</strong>
-                                                <p>{receipt.category}</p>
+                                            <div className="receipt-main">
+                                                <strong className="receipt-merchant">{receipt.merchant}</strong>
+                                                <p className="receipt-category">{receipt.category}</p>
                                             </div>
-                                            <div>
-                                                <strong>{receipt.currency} {Number(receipt.amount).toFixed(2)}</strong>
-                                                <p>{receipt.date}</p>
+                                            <div className="receipt-meta">
+                                                <strong className="receipt-amount">
+                                                    {receipt.currency} {Number(receipt.amount).toFixed(2)}
+                                                </strong>
+                                                <p className="receipt-date">{receipt.date}</p>
+                                                <button
+                                                    type="button"
+                                                    className="receipt-delete-button"
+                                                    onClick={() => handleDeleteReceipt(receipt.id)}
+                                                    disabled={deletingReceiptId === receipt.id || isClearing}
+                                                >
+                                                    {deletingReceiptId === receipt.id ? "Deleting..." : "Delete"}
+                                                </button>
                                             </div>
                                         </div>
                                     ))

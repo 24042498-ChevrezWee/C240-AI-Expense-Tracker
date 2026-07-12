@@ -80,6 +80,38 @@ export async function uploadReceipt(file, userId) {
     });
 }
 
+export async function extractReceiptPreview(file, userId) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("user_id", userId);
+
+    return request("/receipts/preview", {
+        method: "POST",
+        body: formData,
+        isFormData: true,
+    });
+}
+
+export async function confirmReceiptUpload(payload) {
+    return request("/receipts/confirm", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function cancelReceiptPreview(tempFilePath) {
+    return request("/receipts/cancel-preview", {
+        method: "POST",
+        body: JSON.stringify({ temp_file_path: tempFilePath }),
+    });
+}
+
+export async function deleteReceipt(receiptId, userId) {
+    return request(`/receipts/${encodeURIComponent(receiptId)}?user_id=${encodeURIComponent(userId)}`, {
+        method: "DELETE",
+    });
+}
+
 export async function getDashboardData(userId) {
     return request(`/dashboard?user_id=${encodeURIComponent(userId)}`);
 }

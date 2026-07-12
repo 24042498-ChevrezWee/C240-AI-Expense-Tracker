@@ -38,13 +38,3 @@ export async function getRecentReceipts(userId) {
         throw new Error(getFriendlyErrorMessage(error, "We’re having trouble loading your recent receipts right now."));
     }
 }
-
-export function saveRecentReceipt(receipt) {
-    if (!receipt?.id) {
-        return [];
-    }
-
-    const existing = [];
-    const next = [receipt, ...existing.filter((item) => item.id !== receipt.id)].slice(0, 8);
-    return next;
-}

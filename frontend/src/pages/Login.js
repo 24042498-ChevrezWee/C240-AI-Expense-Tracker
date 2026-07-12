@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { loginUser } from "../services/apiService";
 import "./Login.css";
@@ -10,7 +11,18 @@ function Login({ user, onLoginSuccess, onLogout }) {
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("info");
     const [loading, setLoading] = useState(false);
+    const location = useLocation();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const incomingMessage = location.state?.message;
+        if (!incomingMessage) {
+            return;
+        }
+
+        setMessage(incomingMessage);
+        setMessageType("success");
+    }, [location.state]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();

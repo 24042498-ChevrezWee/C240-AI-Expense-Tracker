@@ -34,7 +34,7 @@ class ErrorHandlingTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
         data = response.get_json()
-        self.assertEqual(data["error"], "Please upload a JPG, PNG, or PDF receipt.")
+        self.assertEqual(data["error"], "Please upload a JPG, PNG, or WebP receipt.")
 
     def test_upload_with_ai_processing_failure_returns_generic_message(self):
         with patch("app.routes.extract_receipt_data", side_effect=Exception("Gemini exploded")):

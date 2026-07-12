@@ -2,29 +2,51 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { getDashboardSummary } from "../services/dashboardService";
+import { deleteReceipt } from "../services/apiService";
 import "./Home.css";
 
 function Home({ user, onLogout }) {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [deletingReceiptId, setDeletingReceiptId] = useState(null);
+    const [actionMessage, setActionMessage] = useState("");
+
+    async function loadSummary() {
+        try {
+            setLoading(true);
+            setError("");
+            const data = await getDashboardSummary(user?.user_id);
+            setSummary(data);
+        } catch (err) {
+            setError(err.message || "Unable to load dashboard summary.");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
-        async function loadSummary() {
-            try {
-                setLoading(true);
-                setError("");
-                const data = await getDashboardSummary(user?.user_id);
-                setSummary(data);
-            } catch (err) {
-                setError(err.message || "Unable to load dashboard summary.");
-            } finally {
-                setLoading(false);
-            }
-        }
-
         loadSummary();
     }, [user?.user_id]);
+
+    const handleDeleteReceipt = async (receiptId) => {
+        const confirmed = window.confirm("Are you sure you want to delete this receipt?");
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setDeletingReceiptId(receiptId);
+            setActionMessage("");
+            await deleteReceipt(receiptId, user?.user_id);
+            await loadSummary();
+            setActionMessage("Receipt deleted successfully.");
+        } catch (err) {
+            setActionMessage(err.message || "Unable to delete this receipt right now.");
+        } finally {
+            setDeletingReceiptId(null);
+        }
+    };
 
     return (
         <>
@@ -58,6 +80,8 @@ function Home({ user, onLogout }) {
                     <div className="dashboard-card loading-card">{error}</div>
                 ) : summary ? (
                     <>
+                        {actionMessage ? <div className="dashboard-inline-message">{actionMessage}</div> : null}
+
                         {summary.receiptCount === 0 ? (
                             <section className="dashboard-card loading-card">
                                 No receipts uploaded yet.
@@ -95,13 +119,23 @@ function Home({ user, onLogout }) {
                                 {summary.recentReceipts.length > 0 ? (
                                     summary.recentReceipts.map((receipt) => (
                                         <article key={receipt.id} className="recent-item">
-                                            <div>
-                                                <strong>{receipt.merchant}</strong>
-                                                <p>{receipt.category}</p>
+                                            <div className="recent-main">
+                                                <strong className="recent-merchant">{receipt.merchant}</strong>
+                                                <p className="recent-category">{receipt.category}</p>
                                             </div>
                                             <div className="recent-meta">
-                                                <strong>{receipt.currency} {Number(receipt.amount).toFixed(2)}</strong>
-                                                <span>{receipt.date}</span>
+                                                <strong className="recent-amount">
+                                                    {receipt.currency} {Number(receipt.amount).toFixed(2)}
+                                                </strong>
+                                                <span className="recent-date">{receipt.date}</span>
+                                                <button
+                                                    type="button"
+                                                    className="receipt-delete-button"
+                                                    onClick={() => handleDeleteReceipt(receipt.id)}
+                                                    disabled={deletingReceiptId === receipt.id}
+                                                >
+                                                    {deletingReceiptId === receipt.id ? "Deleting..." : "Delete"}
+                                                </button>
                                             </div>
                                         </article>
                                     ))

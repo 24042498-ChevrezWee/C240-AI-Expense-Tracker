@@ -46,27 +46,15 @@ def create_app(test_config=None):
         from app.models import User
         from werkzeug.security import generate_password_hash
 
-        if app.config['TESTING']:
-            existing_user = User.query.filter_by(email='demo@example.com').first()
-            if not existing_user:
-                demo_user = User(
-                    email='demo@example.com',
-                    password_hash=generate_password_hash('password123'),
-                    first_name='Demo',
-                    last_name='User',
-                )
-                db.session.add(demo_user)
-                db.session.commit()
-        else:
-            existing_user = User.query.filter_by(email='demo@example.com').first()
-            if not existing_user:
-                demo_user = User(
-                    email='demo@example.com',
-                    password_hash=generate_password_hash('password123'),
-                    first_name='Demo',
-                    last_name='User',
-                )
-                db.session.add(demo_user)
-                db.session.commit()
+        existing_user = User.query.filter_by(email='demo@example.com').first()
+        if not existing_user:
+            demo_user = User(
+                email='demo@example.com',
+                password_hash=generate_password_hash('password123'),
+                first_name='Demo',
+                last_name='User',
+            )
+            db.session.add(demo_user)
+            db.session.commit()
 
     return app
