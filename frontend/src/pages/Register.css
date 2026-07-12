@@ -1,0 +1,56 @@
+.register-container {
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 48px;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border: 1px solid #dfe8df;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.register-card h2 {
+    margin: 0 0 8px;
+    color: #1b5e20;
+}
+
+.register-card p {
+    margin: 0 0 18px;
+    color: #4b5563;
+}
+
+.signup-button {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: linear-gradient(90deg, #2e7d32 0%, #43a047 100%);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.signup-button:hover {
+    filter: brightness(0.96);
+}
+
+.signup-button:focus-visible {
+    outline: 3px solid rgba(46, 125, 50, 0.24);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .register-container {
+        padding: 20px 12px 32px;
+    }
+
+    .register-card {
+        padding: 18px;
+    }
+}

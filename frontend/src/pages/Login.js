@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { loginUser } from "../services/apiService";
 import "./Login.css";
@@ -11,18 +10,7 @@ function Login({ user, onLoginSuccess, onLogout }) {
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("info");
     const [loading, setLoading] = useState(false);
-    const location = useLocation();
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const incomingMessage = location.state?.message;
-        if (!incomingMessage) {
-            return;
-        }
-
-        setMessage(incomingMessage);
-        setMessageType("success");
-    }, [location.state]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -95,6 +83,10 @@ function Login({ user, onLoginSuccess, onLogout }) {
                             {loading ? "Signing in..." : "Login"}
                         </button>
                     </form>
+
+                    <p className="register-link">
+                        New user? <Link to="/register">Create an account</Link>
+                    </p>
 
                     {message && <p className={`login-message ${messageType}`}>{message}</p>}
                 </div>

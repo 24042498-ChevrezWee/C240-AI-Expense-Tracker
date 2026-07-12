@@ -96,7 +96,7 @@ def _friendly_error(message, status_code=500):
 
 
 def _is_valid_email(email):
-    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email or ""))
+    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
 
 
 def _split_name(full_name):
@@ -277,6 +277,52 @@ def login():
     }), 200
 
 
+@api_bp.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json(silent=True) or {}
+    first_name = (data.get('first_name') or '').strip()
+    last_name = (data.get('last_name') or '').strip()
+    email = (data.get('email') or '').strip().lower()
+    password = data.get('password') or ''
+
+    if not first_name or not last_name or not email or not password:
+        return _friendly_error("Please provide first name, last name, email, and password.", 400)
+
+    if not _is_valid_email(email):
+        return _friendly_error("Please enter a valid email address.", 400)
+
+    if len(password) < 8:
+        return _friendly_error("Password must be at least 8 characters long.", 400)
+
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return _friendly_error("This email is already registered. Please log in instead.", 409)
+
+    try:
+        user = User(
+            email=email,
+            password_hash=generate_password_hash(password),
+            first_name=first_name,
+            last_name=last_name,
+        )
+        db.session.add(user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return _friendly_error("We couldn't create your account right now. Please try again shortly.", 500)
+
+    return jsonify({
+        "status": "success",
+        "message": "Account created successfully.",
+        "user": {
+            "user_id": user.user_id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        },
+    }), 201
+
+
 @api_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json(silent=True) or {}
@@ -297,30 +343,30 @@ def register():
     if existing_user:
         return _friendly_error("An account with this email already exists.", 409)
 
+    first_name, last_name = _split_name(name)
     try:
-        first_name, last_name = _split_name(name)
-        new_user = User(
+        user = User(
             email=email,
             password_hash=generate_password_hash(password),
             first_name=first_name,
             last_name=last_name,
         )
-        db.session.add(new_user)
+        db.session.add(user)
         db.session.commit()
-
-        return jsonify({
-            "status": "success",
-            "message": "Registration successful. Please log in.",
-            "user": {
-                "user_id": new_user.user_id,
-                "email": new_user.email,
-                "first_name": new_user.first_name,
-                "last_name": new_user.last_name,
-            },
-        }), 201
     except Exception:
         db.session.rollback()
-        return _friendly_error("We couldn’t create your account right now. Please try again shortly.", 500)
+        return _friendly_error("We couldn't create your account right now. Please try again shortly.", 500)
+
+    return jsonify({
+        "status": "success",
+        "message": "Registration successful. Please log in.",
+        "user": {
+            "user_id": user.user_id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        },
+    }), 201
 
 
 @api_bp.route('/dashboard', methods=['GET'])
