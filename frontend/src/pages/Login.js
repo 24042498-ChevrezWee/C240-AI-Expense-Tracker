@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { loginUser } from "../services/apiService";
 import "./Login.css";
@@ -83,6 +83,10 @@ function Login({ user, onLoginSuccess, onLogout }) {
                             {loading ? "Signing in..." : "Login"}
                         </button>
                     </form>
+
+                    <p className="register-link">
+                        New user? <Link to="/register">Create an account</Link>
+                    </p>
 
                     {message && <p className={`login-message ${messageType}`}>{message}</p>}
                 </div>

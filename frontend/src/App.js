@@ -6,6 +6,7 @@ import Summary from "./pages/Summary";
 import ReceiptUpload from "./components/ReceiptUpload";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Register from "./pages/Register";
 
 function ProtectedRoute({ user, children }) {
     if (!user) {
@@ -45,6 +46,17 @@ function App() {
                                 onLoginSuccess={handleLoginSuccess}
                                 onLogout={handleLogout}
                             />
+                        )
+                    }
+                />
+
+                <Route
+                    path="/register"
+                    element={
+                        user ? (
+                            <Navigate to="/" replace />
+                        ) : (
+                            <Register user={user} onLogout={handleLogout} />
                         )
                     }
                 />
